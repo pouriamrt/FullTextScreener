@@ -15,7 +15,8 @@ def main():
         
         print(f"Processing {filename}")
         pdf_path = os.path.join(PDF_FOLDER, filename)
-        chunks = extract_chunks_with_metadata(pdf_path, CHUNK_SIZE, OVERLAP)
+        # chunks = extract_chunks_with_metadata(pdf_path, CHUNK_SIZE, OVERLAP)
+        chunks = extract_chunks_with_metadata(pdf_path, SENTENCES_PER_CHUNK)
         matched_chunks = compute_similar_chunks(chunks, criteria_embeddings, OPENAI_MODEL, SIMILARITY_THRESHOLD)
         print(f"Found {len(matched_chunks)} matched chunks")
         
