@@ -1,14 +1,14 @@
 INCLUSION_CRITERIA = [
     """
-    Population - Populations at risk of developing an NCD 
+    Population - Populations at risk of developing an NCD (Non-Communicable Diseases)
     Included are studies of a real or generalizable human population or subpopulation defined by geographic, demographic or social characteristics (e.g., national population, region, age group, socioeconomic group). Excluded are studies where the population consists exclusively of individuals already diagnosed with an NCD (e.g., diabetes, cancer, cardiovascular disease).
     """,
     """
     Intervention, exposure, or scenario (includes comparator) 
-    Included are studies evaluating potential health impacts of exposures, interventions or policies on NCD outcomes by simulating "what if" scenarios. These include burden-of-disease studies, comparative risk analysis/assessments, and studies of primary or secondary prevention. Excluded are studies focused exclusively on tertiary prevention or methodological development without assessing specific health impact scenarios. 
+    Included are studies evaluating potential health impacts of exposures, interventions or policies on NCD (Non-Communicable Diseases) outcomes by simulating "what if" scenarios. These include burden-of-disease studies, comparative risk analysis/assessments, and studies of primary or secondary prevention. Excluded are studies focused exclusively on tertiary prevention or methodological development without assessing specific health impact scenarios. 
     """,
     """
-    Outcome - Selected non-communicable diseases (NCDs) or NCD risk factors 
+    Outcome - Selected non-communicable diseases (NCDs - Non-Communicable Diseases) or NCD risk factors 
     Included are studies reporting outcomes related to selected major NCDs (cardiovascular diseases, cancer, diabetes, chronic respiratory diseases, mental health conditions, or neurological conditions, injury and musculoskeletal diseases) or their risk factors. Excluded are studies primarily designed as health economic evaluations (e.g., cost-effectiveness analyses) or those focusing exclusively on non-NCD conditions without NCD outcomes.
     """,
     """
@@ -34,9 +34,9 @@ CRITERIA_COLORS = {
     5: (0.6, 0.6, 1),    # Light purple
 }
 
-OPENAI_MODEL = "text-embedding-ada-002"
-CHUNK_SIZE = 120  # number of words per chunk
+OPENAI_MODEL = "text-embedding-3-large"
+CHUNK_SIZE = 100
 OVERLAP = 10
-SIMILARITY_THRESHOLD = 0.82
+SIMILARITY_THRESHOLD = 0.46
 PDF_FOLDER = "data/papers"
 OUTPUT_FOLDER = "data/output"

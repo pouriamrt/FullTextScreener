@@ -1,7 +1,7 @@
 import os
 from config import *
 from utils.pdf_parser import extract_chunks_with_metadata
-from utils.embedding import get_embedding, get_batch_embeddings
+from utils.embedding import get_embedding
 from utils.similarity import compute_similar_chunks
 from utils.pdf_highlighter import highlight_chunks
 from tqdm import tqdm

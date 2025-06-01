@@ -10,6 +10,7 @@ def compute_similar_chunks(chunks, criteria_embeddings, model, threshold):
     for i, (chunk, emb) in enumerate(zip(chunks, chunk_embeddings)):
         scores = cosine_similarity([emb], criteria_embeddings)[0]
         max_idx = scores.argmax()
+        print(scores[max_idx])
         if scores[max_idx] >= threshold:
             chunk["criterion_id"] = max_idx
             matched_chunks.append(chunk)
