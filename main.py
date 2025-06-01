@@ -6,7 +6,7 @@ from utils.similarity import compute_similar_chunks
 from utils.pdf_highlighter import highlight_chunks
 from tqdm import tqdm
 from utils.check_chunk_llm import send_to_llm
-
+from time import time
 
 def main():
     criteria_embeddings = [get_embedding(c, OPENAI_MODEL) for c in tqdm(INCLUSION_CRITERIA)]
@@ -29,9 +29,13 @@ def main():
         for i, chunk in enumerate(tqdm(matched_chunks)):
             label = chunk['criterion_id']
             description = INCLUSION_CRITERIA[label]
-            matched_chunks[i]['llm_reason'] = send_to_llm(chunk['text'], CRITERIA_LABELS[label], description)
+            matched_chunks[i]['llm_reason'] = send_to_llm(chunk['text'], CRITERIA_LABELS[label], description, LLM_MODEL)
         
         highlight_chunks(pdf_path, matched_chunks, output_path)
 
 if __name__ == "__main__":
+    start_time = time()
     main()
+    end_time = time()
+    total_seconds = end_time - start_time
+    print(f"\n🕒 Total runtime: {total_seconds:.2f} seconds")

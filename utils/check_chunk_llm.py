@@ -5,8 +5,8 @@ from joblib import Memory
 memory = Memory("cache_dir/llm", verbose=0)
 
 @memory.cache
-def send_to_llm(text, label, description):
-    llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0)
+def send_to_llm(text, label, description, model="gpt-4.1-mini"):
+    llm = ChatOpenAI(model=model, temperature=0)
 
     prompt = ChatPromptTemplate.from_messages([
         (
