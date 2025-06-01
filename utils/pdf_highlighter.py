@@ -7,7 +7,7 @@ def highlight_chunks(pdf_path, chunks, output_path):
 
     for chunk in chunks:
         page = doc[chunk["page"]]
-        text = chunk["text"]
+        text = chunk["text"].strip()
         color = CRITERIA_COLORS.get(chunk["criterion_id"], (1, 1, 0))  # default yellow
 
         try:

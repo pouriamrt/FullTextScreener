@@ -1,7 +1,7 @@
 import os
 from config import *
 from utils.pdf_parser import extract_chunks_with_metadata
-from utils.embedding import get_embedding
+from utils.embedding import get_embedding, get_batch_embeddings
 from utils.similarity import compute_similar_chunks
 from utils.pdf_highlighter import highlight_chunks
 from tqdm import tqdm
@@ -9,14 +9,16 @@ from tqdm import tqdm
 def main():
     criteria_embeddings = [get_embedding(c, OPENAI_MODEL) for c in tqdm(INCLUSION_CRITERIA)]
 
-    for filename in os.listdir(PDF_FOLDER):
+    for filename in tqdm(os.listdir(PDF_FOLDER)):
         if not filename.endswith(".pdf"):
             continue
+        
         print(f"Processing {filename}")
         pdf_path = os.path.join(PDF_FOLDER, filename)
         chunks = extract_chunks_with_metadata(pdf_path, CHUNK_SIZE, OVERLAP)
-        matched_chunks = compute_similar_chunks(chunks, criteria_embeddings, OPENAI_MODEL, get_embedding, SIMILARITY_THRESHOLD)
-
+        matched_chunks = compute_similar_chunks(chunks, criteria_embeddings, OPENAI_MODEL, SIMILARITY_THRESHOLD)
+        print(f"Found {len(matched_chunks)} matched chunks")
+        
         output_path = os.path.join(OUTPUT_FOLDER, filename.replace(".pdf", "_highlighted.pdf"))
         highlight_chunks(pdf_path, matched_chunks, output_path)
 

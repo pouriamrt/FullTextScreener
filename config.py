@@ -37,6 +37,6 @@ CRITERIA_COLORS = {
 OPENAI_MODEL = "text-embedding-ada-002"
 CHUNK_SIZE = 120  # number of words per chunk
 OVERLAP = 10
-SIMILARITY_THRESHOLD = 0.85
+SIMILARITY_THRESHOLD = 0.82
 PDF_FOLDER = "data/papers"
 OUTPUT_FOLDER = "data/output"
