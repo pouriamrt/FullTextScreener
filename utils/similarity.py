@@ -9,7 +9,7 @@ def compute_similar_chunks(chunks, criteria_embeddings, model, threshold):
 
     top_scores = []
     matched_chunks = []
-    for i, (chunk, emb) in tqdm(enumerate(zip(chunks, chunk_embeddings))):
+    for i, (chunk, emb) in enumerate(tqdm(zip(chunks, chunk_embeddings))):
         scores = cosine_similarity([emb], criteria_embeddings)[0]
         max_idx = scores.argmax()
         top_scores.append(scores[max_idx])

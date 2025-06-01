@@ -34,6 +34,15 @@ CRITERIA_COLORS = {
     5: (0.6, 0.6, 1),    # Light purple
 }
 
+CRITERIA_LABELS = {
+    0: "Population",
+    1: "Intervention",
+    2: "Outcome",
+    3: "Study approach",
+    4: "Integration of multiple data sources",
+    5: "Model adaptability"
+}
+
 OPENAI_MODEL = "text-embedding-3-large"
 CHUNK_SIZE = 100
 OVERLAP = 10
