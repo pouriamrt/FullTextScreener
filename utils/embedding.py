@@ -1,11 +1,14 @@
 import openai
 import numpy as np
 from joblib import Memory
+import os
+from dotenv import load_dotenv
 
-# Caching directory
+load_dotenv()
+
 memory = Memory("cache_dir", verbose=0)
 
-client = openai.OpenAI()
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @memory.cache
 def get_embedding(text, model="text-embedding-3-small"):
