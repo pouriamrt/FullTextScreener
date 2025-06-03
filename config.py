@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 INCLUSION_CRITERIA = [
     """
     Population - Populations at risk of developing an NCD (Non-Communicable Diseases)
@@ -52,3 +57,5 @@ SENTENCES_OVERLAP = 1
 SIMILARITY_THRESHOLD = 0.5
 PDF_FOLDER = "data/papers"
 OUTPUT_FOLDER = "data/output"
+OVERWRITE = False
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")

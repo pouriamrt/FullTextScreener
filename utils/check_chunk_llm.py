@@ -1,12 +1,13 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from joblib import Memory
+from config import OPENAI_API_KEY
 
 memory = Memory("cache_dir/llm", verbose=0)
 
 @memory.cache
 def send_to_llm(text, label, description, model="gpt-4.1-mini"):
-    llm = ChatOpenAI(model=model, temperature=0)
+    llm = ChatOpenAI(model=model, temperature=0, api_key=OPENAI_API_KEY)
 
     prompt = ChatPromptTemplate.from_messages([
         (
