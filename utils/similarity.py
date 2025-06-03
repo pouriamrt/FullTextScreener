@@ -17,5 +17,5 @@ def compute_similar_chunks(chunks, criteria_embeddings, model, threshold):
             chunk["criterion_id"] = max_idx
             matched_chunks.append(chunk)
 
-    print(sorted(top_scores, reverse=True)[:10])
+    print("Top 10 scores:", sorted(top_scores, reverse=True)[:10])
     return matched_chunks

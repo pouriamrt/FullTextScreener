@@ -3,7 +3,7 @@ from tqdm import tqdm
 import nltk
 from nltk.tokenize import sent_tokenize
 
-def extract_chunks_with_metadata(pdf_path, sentences_per_chunk=3):
+def extract_chunks_with_metadata(pdf_path, sentences_per_chunk=3, sentences_overlap=2):
     doc = fitz.open(pdf_path)
     all_chunks = []
 
@@ -11,7 +11,7 @@ def extract_chunks_with_metadata(pdf_path, sentences_per_chunk=3):
         text = page.get_text("text")
         sentences = sent_tokenize(text)
 
-        for i in range(0, len(sentences) - sentences_per_chunk + 1):
+        for i in range(0, len(sentences) - sentences_per_chunk + 1, sentences_overlap):
             chunk_sents = sentences[i:i + sentences_per_chunk]
             chunk_text = " ".join(s.strip() for s in chunk_sents).strip()
 
