@@ -42,15 +42,28 @@ In systematic reviews or screening tasks, full-text PDF review is labor-intensiv
 
 ## 🏗️ Pipeline Architecture
 
+### 🧭 Overview
+
+1. 📄 **Input PDFs** placed in `data/papers/`
+2. 🧩 **Sentence-Based Chunking** (sliding windows with overlap)
+3. 🔢 **Embedding Generation** using `text-embedding-3-large`
+4. 📐 **Cosine Similarity Scoring** vs. inclusion criteria
+5. 🤖 **LLM Verification** using `GPT-4.1-mini`
+6. 🧠 **Store Validated Chunks** with LLM-generated reasoning
+7. 🖍️ **Highlight Matched Text** in original PDF
+8. 📂 **Save Annotated PDFs** to `data/output/`
+
+### 🗺️ Mermaid Diagram
+
 ```mermaid
 flowchart TD
-    A[📄 Input PDFs (data/papers)] --> B[🧩 Sentence-Based Chunking]
-    B --> C[🔢 Embedding Generation<br/>(text-embedding-3-large)]
-    C --> D[📐 Cosine Similarity Scoring<br/>against Inclusion Criteria]
-    D -->|≥ Threshold| E[🤖 LLM Verification (GPT-4.1-mini)]
-    E --> F[🧠 Save Validated Chunks with LLM Reasoning]
-    F --> G[🖍️ Highlight Matches in PDF]
-    G --> H[📂 Output PDFs (data/output)]
+    A[Input PDFs (data/papers)] --> B[Sentence-Based Chunking]
+    B --> C[Embedding Generation (text-embedding-3-large)]
+    C --> D[Cosine Similarity Scoring vs. Inclusion Criteria]
+    D -->|Above Threshold| E[LLM Verification (GPT-4.1-mini)]
+    E --> F[Store Validated Chunks with Reasoning]
+    F --> G[Highlight Matches in PDF]
+    G --> H[Output PDFs (data/output)]
 ```
 
 ---
