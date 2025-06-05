@@ -53,9 +53,9 @@ In systematic reviews or screening tasks, full-text PDF review is labor-intensiv
 7. 🖍️ **Highlight Matched Text** in original PDF
 8. 📂 **Save Annotated PDFs** to `data/output/`
 
-### 🗺️ Mermaid Diagram
+### 🗺️ Diagram
 
-```mermaid
+```bash
 flowchart TD
     A[Input PDFs (data/papers)] --> B[Sentence-Based Chunking]
     B --> C[Embedding Generation (text-embedding-3-large)]
