@@ -4,7 +4,10 @@ from tqdm import tqdm
 
 def compute_similar_chunks(chunks, criteria_embeddings, model, threshold):
     texts = [chunk["text"] for chunk in chunks]
-
+    
+    if len(texts) == 0:
+        return None
+    
     chunk_embeddings = get_batch_embeddings(texts, model)
 
     top_scores = []

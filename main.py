@@ -26,8 +26,12 @@ def main(overwrite=False):
         
         # chunks = extract_chunks_with_metadata(pdf_path, CHUNK_SIZE, OVERLAP)
         chunks = extract_chunks_with_metadata(pdf_path, SENTENCES_PER_CHUNK, SENTENCES_OVERLAP)
-        
+                
         matched_chunks = compute_similar_chunks(chunks, criteria_embeddings, OPENAI_MODEL, SIMILARITY_THRESHOLD)
+        if matched_chunks is None:
+            print(f"No matched chunks found for {filename[:100]}")
+            continue
+        
         print(f"Found {len(matched_chunks)} matched chunks")
         
         for i, chunk in enumerate(tqdm(matched_chunks)):
