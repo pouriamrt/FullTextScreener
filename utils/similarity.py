@@ -2,7 +2,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from utils.embedding import get_batch_embeddings
 from tqdm import tqdm
 
-def compute_similar_chunks(chunks, criteria_embeddings, model, threshold):
+def compute_similar_chunks(chunks, criteria_embeddings, model, thresholds):
     texts = [chunk["text"] for chunk in chunks]
     
     if len(texts) == 0:
@@ -16,7 +16,7 @@ def compute_similar_chunks(chunks, criteria_embeddings, model, threshold):
         scores = cosine_similarity([emb], criteria_embeddings)[0]
         max_idx = scores.argmax()
         top_scores.append(scores[max_idx])
-        if scores[max_idx] >= threshold:
+        if scores[max_idx] >= thresholds[max_idx]:
             chunk["criterion_id"] = max_idx
             matched_chunks.append(chunk)
 

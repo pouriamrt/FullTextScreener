@@ -25,6 +25,8 @@ def extract_chunks_with_metadata(pdf_path, sentences_per_chunk=3, sentences_over
 
     return all_chunks
 
+
+
 # def extract_chunks_with_metadata(pdf_path, chunk_size=120, overlap=10):
 #     doc = fitz.open(pdf_path)
 #     all_chunks = []
