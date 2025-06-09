@@ -24,7 +24,7 @@ def send_to_llm(text, label, description, model="gpt-4.1-mini"):
             "CHUNK:\n{text}\n\n"
             "CRITERION LABEL:\n{label}\n\n"
             "CRITERION DESCRIPTION:\n{description}\n\n"
-            "Does the chunk satisfy the criterion? Answer YES or NO and explain."
+            "Should the chunk be included in the study based on the criterion? Answer YES or NO and explain."
         ),
     ])
 

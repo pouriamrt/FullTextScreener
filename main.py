@@ -9,9 +9,10 @@ from utils.check_chunk_llm import send_to_llm
 from time import time
 
 def main(overwrite=False):
-    criteria_embeddings = [get_embedding(c, OPENAI_MODEL) for c in tqdm(INCLUSION_CRITERIA)]
+    inclusion_criteria_embeddings = [get_embedding(c, OPENAI_MODEL) for c in tqdm(INCLUSION_CRITERIA)]
+    exclusion_criteria_embeddings = [get_embedding(c, OPENAI_MODEL) for c in tqdm(EXCLUSION_CRITERIA)]
 
-    for filename in tqdm(os.listdir(PDF_FOLDER)):
+    for filename in tqdm(os.listdir(PDF_FOLDER)[:3]):
         if not filename.endswith(".pdf"):
             continue
         
@@ -27,7 +28,7 @@ def main(overwrite=False):
         # chunks = extract_chunks_with_metadata(pdf_path, CHUNK_SIZE, OVERLAP)
         chunks = extract_chunks_with_metadata(pdf_path, SENTENCES_PER_CHUNK, SENTENCES_OVERLAP)
         
-        matched_chunks = compute_similar_chunks(chunks, criteria_embeddings, filename, OPENAI_MODEL, SIMILARITY_THRESHOLDS)
+        matched_chunks = compute_similar_chunks(chunks, inclusion_criteria_embeddings, exclusion_criteria_embeddings, filename, OPENAI_MODEL, SIMILARITY_THRESHOLDS)
         if matched_chunks is None:
             print(f"No matched chunks found for {filename[:100]}")
             continue
@@ -36,7 +37,7 @@ def main(overwrite=False):
         
         for i, chunk in enumerate(tqdm(matched_chunks)):
             label = chunk['criterion_id']
-            description = INCLUSION_CRITERIA[label]
+            description = INCLUSION_CRITERIA[label] + "\n\n" + EXCLUSION_CRITERIA[label]
             matched_chunks[i]['llm_reason'] = send_to_llm(chunk['text'], CRITERIA_LABELS[label], description, LLM_MODEL)
         
         highlight_chunks(pdf_path, matched_chunks, output_path)
