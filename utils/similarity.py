@@ -6,6 +6,69 @@ import os
 from config import CRITERIA_COLORS, PLOT_FOLDER, CRITERIA_LABELS
 import numpy as np
 
+def compute_similar_chunks_adaptive(
+    chunks,
+    inclusion_criteria_embeddings,
+    exclusion_criteria_embeddings,
+    filename,
+    model,
+    thresholds=None,                 # fallback static vector
+    percentile=75,                   # for percentile rule
+    k=None,                          # set k (e.g. 1.5) to switch to mean+kσ rule
+    min_floor=0.02,                  # absolute minimum threshold
+    use_static=False,                # force old behaviour
+    return_thresholds=False          # handy for debugging
+):
+    """
+    Return list of matched chunks + (optionally) the dynamic threshold vector.
+
+    If k is None  ➜ percentile rule
+    If k is float ➜ mean + k·σ rule
+    """
+    texts = [c["text"] for c in chunks]
+    if not texts:
+        return (None, None) if return_thresholds else None
+
+    # 1️⃣ Embed once
+    chunk_emb = get_batch_embeddings(texts, model)
+
+    # 2️⃣ Compute Δ-similarity matrix
+    sim_incl = cosine_similarity(chunk_emb, inclusion_criteria_embeddings)
+    sim_excl = cosine_similarity(chunk_emb, exclusion_criteria_embeddings)
+    scores_matrix = sim_incl - sim_excl
+
+    # 3️⃣ Derive dynamic thresholds -----------------------------------------
+    if use_static and thresholds is not None:
+        thr_dyn = np.asarray(thresholds)
+    else:
+        if k is None:  # percentile rule
+            thr_dyn = np.percentile(scores_matrix, percentile, axis=0)
+        else:          # mean + k·σ rule
+            mu  = scores_matrix.mean(axis=0)
+            std = scores_matrix.std(axis=0)
+            thr_dyn = mu + k * std
+
+        # enforce absolute floor
+        thr_dyn = np.maximum(thr_dyn, min_floor)
+
+    # 4️⃣ Select matched chunks ---------------------------------------------
+    matched_chunks = []
+    top_scores = scores_matrix.max(axis=1)       # best per chunk
+    best_idxs   = scores_matrix.argmax(axis=1)   # which criterion
+
+    for chunk, best_score, best_idx in zip(chunks, top_scores, best_idxs):
+        if best_score >= thr_dyn[best_idx]:
+            chunk["criterion_id"] = int(best_idx)
+            matched_chunks.append(chunk)
+
+    # 5️⃣ Plot distribution (unchanged from your code)
+    plot_cosine_similarity_distribution(top_scores.tolist(), thr_dyn, filename)
+
+    if return_thresholds:
+        return matched_chunks, thr_dyn
+    return matched_chunks
+
+
 def compute_similar_chunks(chunks, inclusion_criteria_embeddings, exclusion_criteria_embeddings, filename, model, thresholds):
     texts = [chunk["text"] for chunk in chunks]
     

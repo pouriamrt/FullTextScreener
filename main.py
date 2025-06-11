@@ -2,7 +2,7 @@ import os
 from config import *
 from utils.pdf_parser import extract_chunks_with_metadata
 from utils.embedding import get_embedding
-from utils.similarity import compute_similar_chunks
+from utils.similarity import compute_similar_chunks, compute_similar_chunks_adaptive
 from utils.pdf_highlighter import highlight_chunks
 from tqdm import tqdm
 from utils.check_chunk_llm import send_to_llm
@@ -28,7 +28,9 @@ def main(overwrite=False):
         # chunks = extract_chunks_with_metadata(pdf_path, CHUNK_SIZE, OVERLAP)
         chunks = extract_chunks_with_metadata(pdf_path, SENTENCES_PER_CHUNK, SENTENCES_OVERLAP)
         
-        matched_chunks = compute_similar_chunks(chunks, inclusion_criteria_embeddings, exclusion_criteria_embeddings, filename, OPENAI_MODEL, SIMILARITY_THRESHOLDS)
+        # matched_chunks = compute_similar_chunks(chunks, inclusion_criteria_embeddings, exclusion_criteria_embeddings, filename, OPENAI_MODEL, SIMILARITY_THRESHOLDS)
+        matched_chunks = compute_similar_chunks_adaptive(chunks, inclusion_criteria_embeddings, exclusion_criteria_embeddings, 
+                                                         filename, OPENAI_MODEL, SIMILARITY_THRESHOLDS)
         if matched_chunks is None:
             print(f"No matched chunks found for {filename[:100]}")
             continue
@@ -37,7 +39,7 @@ def main(overwrite=False):
         
         for i, chunk in enumerate(tqdm(matched_chunks)):
             label = chunk['criterion_id']
-            description = INCLUSION_CRITERIA[label] + "\n\n" + EXCLUSION_CRITERIA[label]
+            description = 'INCLUSION CRITERIA: \n' + INCLUSION_CRITERIA[label] + "\n\n" + 'EXCLUSION CRITERIA: \n' + EXCLUSION_CRITERIA[label]
             matched_chunks[i]['llm_reason'] = send_to_llm(chunk['text'], CRITERIA_LABELS[label], description, LLM_MODEL)
         
         highlight_chunks(pdf_path, matched_chunks, output_path)

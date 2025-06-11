@@ -32,104 +32,69 @@ load_dotenv()
 
 INCLUSION_CRITERIA = [
     """
-    Population
-    Studies focusing on population-level outcomes of NCDs (Non-Communicable Diseases) and their risks. Focuses on outcomes for groups of people not individuals.
+    Population - Populations at risk of developing an NCD (Non-Communicable Diseases)
+    Studies of real or generalizable human populations at risk of developing NCDs. These may be defined by geographic, demographic, or social characteristics (e.g., national population, region, age group).
     """,
     """
-    Intervention/Exposure
-    Assessing the impact of hypothetical health risk exposures, interventions, policies, screening and diagnostic programs, lifestyle intervention, disease projections on NCD outcomes through theoretical or hypothetical scenarios.
+    Intervention, exposure, or scenario (includes comparator) 
+    Studies evaluating health impacts of exposures, interventions, or policies on NCD outcomes through simulation of hypothetical scenarios. Includes burden-of-disease and comparative risk assessment studies.
     """,
     """
-    Comparison
-    Comparing the above interventions to current practices relating to these outcomes and other hypothetical practices that may be considered as alternatives.
+    Outcome - Selected non-communicable diseases (NCDs - Non-Communicable Diseases) or NCD risk factors 
+    Studies reporting on outcomes related to major NCDs (e.g., cardiovascular disease, cancer, diabetes, chronic respiratory diseases, mental health, neurological disorders, injury, or musculoskeletal conditions) or their risk factors.
     """,
     """
-    Outcome
-    Outcomes related to the 5 primary NCDs (Non-Communicable Diseases). This includes heart disease, diabetes, cancer (not squamous cell or basal cell carcinoma), chronic respiratory diseases (COPD/asthma), mental health and neurological conditions (anxiety, depression, schizophrenia, bipolar, dementia, parkinson's).
+    Study approach - Computational simulation modelling 
+    Studies that use computational simulation modeling (e.g., system dynamics, agent-based models, microsimulation, Markov models, or attributable risk models) as the primary method of analysis.
     """,
     """
-    Study Design
-    Computational simulation modeling studies utilizing the following techniques (and more): agent-based modeling, discrete event simulations, system dynamics modelling, Monte Carlo simulations, markov chains, micro/macrosimulation models, and life table analyses.
+    Integration of multiple data sources
+    Studies that integrate multiple data sources (e.g., empirical data, expert opinion, literature-based estimates) for model parameters or intervention effects.
     """,
     """
-    Integration of Data
-    Models integrating multiple data sources (e.g., population demographics, disease prevalence, intervention effectiveness).
-    """,
-    """
-    Adaptability
-    Models that are flexible and allow for updates, new data integration, and testing of various scenarios.
+    Model adaptability
+    Models that can be adapted to incorporate new data, test different hypotheses, or simulate alternative scenarios.
     """
 ]
 
 EXCLUSION_CRITERIA = [
     """
-    Population
-    Studies focusing on individual-level predictions, such as TRIPOD-AI, or clinical trial participants.
+    Studies focusing exclusively on individuals already diagnosed with NCDs or using highly specific clinical cohorts without generalizability.
     """,
     """
-    Intervention/Exposure
-    Observational studies without simulation, or those reporting observed outcomes without examining hypothetical scenarios.
+    Studies that focus exclusively on tertiary prevention or do not simulate hypothetical scenarios (e.g., purely observational studies).
     """,
     """
-    Comparison
-    Studies not involving comparative scenarios or static analyses lacking adaptability to multiple interventions.
+    Studies that are primarily health economic evaluations (e.g., cost-effectiveness analyses) or those focusing only on non-NCD outcomes.
     """,
     """
-    Outcome
-    Studies focusing exclusively on infectious diseases unless explicitly linked as risk factors for NCDs.
+    Studies using statistical regression, observational methods, trend forecasts, or risk prediction models that do not simulate interventions.
     """,
     """
-    Study Design
-    Studies using only descriptive statistics, regression analyses without simulation, or simple extrapolations.
+    Studies using only one data source or models that lack empirical grounding (e.g., purely hypothetical assumptions).
     """,
     """
-    Integration of Data
-    Studies relying on a single data source or using hypothetical data without real-world inputs.
-    """,
-    """
-    Adaptability
-    Static models or those designed for a single, unchangeable scenario.
+    Models that are not designed to be updated or modified for different scenarios or new data inputs.
     """
 ]
 
-
-
-# CRITERIA_COLORS = {
-#     0: (1, 0.9, 0),      # Yellow
-#     1: (0.6, 1, 0.6),    # Light green
-#     2: (0.8, 0.9, 1),    # Light blue
-#     3: (1, 0.6, 0.6),    # Light red
-#     4: (0.9, 0.9, 0.6),  # Light yellow
-#     5: (0.6, 0.6, 1),    # Light purple
-# }
 
 CRITERIA_COLORS = {
     0: (1, 0.9, 0),      # Yellow
     1: (0.6, 1, 0.6),    # Light green
     2: (0.8, 0.9, 1),    # Light blue
     3: (1, 0.6, 0.6),    # Light red
-    4: (1.0, 0.8, 0.6),  # Light orange
-    5: (0.9, 0.9, 0.6),  # Light yellow
-    6: (0.6, 0.6, 1),    # Light purple
+    4: (0.9, 0.9, 0.6),  # Light yellow
+    5: (0.6, 0.6, 1),    # Light purple
 }
-
-# CRITERIA_LABELS = {
-#     0: "Population",
-#     1: "Intervention",
-#     2: "Outcome",
-#     3: "Study approach",
-#     4: "Integration of multiple data sources",
-#     5: "Model adaptability"
-# }
 
 CRITERIA_LABELS = {
     0: "Population",
     1: "Intervention",
-    2: "Comparison",
-    3: "Outcome",
-    4: "Study Design",
-    5: "Integration of Data",
-    6: "Adaptability"
+    2: "Outcome",
+    3: "Study approach",
+    4: "Integration of multiple data sources",
+    5: "Model adaptability"
 }
 
 OPENAI_MODEL = "text-embedding-3-large"
@@ -140,7 +105,7 @@ SENTENCES_PER_CHUNK = 4
 SENTENCES_OVERLAP = 1
 # SIMILARITY_THRESHOLD = 0.5
 # SIMILARITY_THRESHOLDS = [0.4, 0.45, 0.42, 0.48, 0.37, 0.37]
-SIMILARITY_THRESHOLDS = [0.05, 0.05, 0.05, 0.05, 0.05, 0.13, 0.1]
+SIMILARITY_THRESHOLDS = [0.05, 0.05, 0.05, 0.05, 0.13, 0.1]
 PDF_FOLDER = "data/papers"
 OUTPUT_FOLDER = "data/output"
 PLOT_FOLDER = "data/plots"
