@@ -12,7 +12,7 @@ def main(overwrite=False):
     inclusion_criteria_embeddings = [get_embedding(c, OPENAI_MODEL) for c in tqdm(INCLUSION_CRITERIA)]
     exclusion_criteria_embeddings = [get_embedding(c, OPENAI_MODEL) for c in tqdm(EXCLUSION_CRITERIA)]
 
-    for filename in tqdm(os.listdir(PDF_FOLDER)[:3]):
+    for filename in tqdm(os.listdir(PDF_FOLDER)[:4]):
         if not filename.endswith(".pdf"):
             continue
         

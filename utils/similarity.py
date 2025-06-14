@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import os
 from config import CRITERIA_COLORS, PLOT_FOLDER, CRITERIA_LABELS
 import numpy as np
+import re
 
 def compute_similar_chunks_adaptive(
     chunks,
@@ -13,11 +14,12 @@ def compute_similar_chunks_adaptive(
     filename,
     model,
     thresholds=None,                 # fallback static vector
-    percentile=75,                   # for percentile rule
+    percentile=95,                   # for percentile rule
     k=None,                          # set k (e.g. 1.5) to switch to mean+kσ rule
     min_floor=0.02,                  # absolute minimum threshold
     use_static=False,                # force old behaviour
-    return_thresholds=False          # handy for debugging
+    return_thresholds=False,         # handy for debugging
+    skip_reference=True              # skip reference chunks
 ):
     """
     Return list of matched chunks + (optionally) the dynamic threshold vector.
@@ -53,16 +55,18 @@ def compute_similar_chunks_adaptive(
 
     # 4️⃣ Select matched chunks ---------------------------------------------
     matched_chunks = []
-    top_scores = scores_matrix.max(axis=1)       # best per chunk
-    best_idxs   = scores_matrix.argmax(axis=1)   # which criterion
+    for chunk, scores in zip(chunks, scores_matrix):
+        if skip_reference and re.match(r'^(references|reference[s]? section|bibliography|works cited|literature cited)(?:\s*\n|\s+[.:])?', chunk["text"].lower(), re.IGNORECASE):
+            break
+        
+        for criterion_id, (score, threshold) in enumerate(zip(scores, thr_dyn)):
+            if score >= threshold:
+                chunk_copy = chunk.copy()
+                chunk_copy["criterion_id"] = int(criterion_id)
+                matched_chunks.append(chunk_copy)
 
-    for chunk, best_score, best_idx in zip(chunks, top_scores, best_idxs):
-        if best_score >= thr_dyn[best_idx]:
-            chunk["criterion_id"] = int(best_idx)
-            matched_chunks.append(chunk)
-
-    # 5️⃣ Plot distribution (unchanged from your code)
-    plot_cosine_similarity_distribution(top_scores.tolist(), thr_dyn, filename)
+    # 5️⃣ Plot distribution
+    plot_cosine_similarity_distribution(scores_matrix.max(axis=1), thr_dyn, filename)
 
     if return_thresholds:
         return matched_chunks, thr_dyn
