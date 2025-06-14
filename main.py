@@ -6,9 +6,12 @@ from utils.similarity import compute_similar_chunks, compute_similar_chunks_adap
 from utils.pdf_highlighter import highlight_chunks
 from tqdm import tqdm
 from utils.check_chunk_llm import send_to_llm
+from utils.cost_tracker import APICostTracker
 from time import time
 
 def main(overwrite=False):
+    cost_tracker = APICostTracker(model=LLM_MODEL)
+    
     inclusion_criteria_embeddings = [get_embedding(c, OPENAI_MODEL) for c in tqdm(INCLUSION_CRITERIA)]
     exclusion_criteria_embeddings = [get_embedding(c, OPENAI_MODEL) for c in tqdm(EXCLUSION_CRITERIA)]
 
@@ -43,9 +46,12 @@ def main(overwrite=False):
         for i, chunk in enumerate(tqdm(matched_chunks)):
             label = chunk['criterion_id']
             description = 'INCLUSION CRITERIA: \n' + INCLUSION_CRITERIA[label] + "\n\n" + 'EXCLUSION CRITERIA: \n' + EXCLUSION_CRITERIA[label]
-            matched_chunks[i]['llm_reason'] = send_to_llm(chunk['text'], CRITERIA_LABELS[label], description, LLM_MODEL)
+            matched_chunks[i]['llm_reason'], usage = send_to_llm(chunk['text'], CRITERIA_LABELS[label], description, LLM_MODEL)
+            cost_tracker.update_from_usage(usage)
         
         highlight_chunks(pdf_path, matched_chunks, output_path)
+        
+    cost_tracker.report()
 
 if __name__ == "__main__":
     start_time = time()
