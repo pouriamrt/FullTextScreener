@@ -2,7 +2,7 @@ import os
 from config import *
 from utils.pdf_parser import extract_chunks_with_metadata
 from utils.embedding import get_embedding
-from utils.similarity import compute_similar_chunks, compute_similar_chunks_adaptive
+from utils.similarity import compute_similar_chunks, compute_similar_chunks_adaptive, compute_similar_chunks_mamdani
 from utils.pdf_highlighter import highlight_chunks
 from tqdm import tqdm
 from utils.check_chunk_llm import send_to_llm
@@ -29,8 +29,11 @@ def main(overwrite=False):
         chunks = extract_chunks_with_metadata(pdf_path, SENTENCES_PER_CHUNK, SENTENCES_OVERLAP)
         
         # matched_chunks = compute_similar_chunks(chunks, inclusion_criteria_embeddings, exclusion_criteria_embeddings, filename, OPENAI_MODEL, SIMILARITY_THRESHOLDS)
-        matched_chunks = compute_similar_chunks_adaptive(chunks, inclusion_criteria_embeddings, exclusion_criteria_embeddings, 
-                                                         filename, OPENAI_MODEL, SIMILARITY_THRESHOLDS)
+        # matched_chunks = compute_similar_chunks_adaptive(chunks, inclusion_criteria_embeddings, exclusion_criteria_embeddings, 
+        #                                                  filename, OPENAI_MODEL, SIMILARITY_THRESHOLDS)
+        matched_chunks = compute_similar_chunks_mamdani(chunks, inclusion_criteria_embeddings, exclusion_criteria_embeddings, 
+                                                        filename, OPENAI_MODEL, MU_CUTOFF)
+        
         if matched_chunks is None:
             print(f"No matched chunks found for {filename[:100]}")
             continue
