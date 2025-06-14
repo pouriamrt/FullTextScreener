@@ -7,6 +7,51 @@ from config import OPENAI_API_KEY
 memory = Memory("cache_dir/llm", verbose=0)
 
 @memory.cache
+def send_to_llm_batch(chunks, criteria_labels, inclusion_criteria, exclusion_criteria, model='gpt-4.1-mini', max_concurrency=20):
+    llm = ChatOpenAI(model=model, temperature=0, api_key=OPENAI_API_KEY)
+
+    prompt = ChatPromptTemplate.from_messages([
+        (
+            "system",
+            "You are a domain expert in clinical research. Your task is to verify whether a given chunk of text from a research paper satisfies a specific inclusion criterion.\n\n"
+            "You will be given:\n"
+            "- A CHUNK from the paper\n"
+            "- A CRITERION LABEL (e.g., 'Study Design')\n"
+            "- A CRITERION DESCRIPTION (i.e., what the label actually means)\n\n"
+            "Evaluate whether the chunk supports or satisfies the criterion. Respond with YES or NO, and then explain your reasoning in 1–2 sentences."
+        ),
+        (
+            "human",
+            "CHUNK:\n{text}\n\n"
+            "CRITERION LABEL:\n{label}\n\n"
+            "CRITERION DESCRIPTION:\n{description}\n\n"
+            "Should the chunk be included in the study based on the criterion? Answer YES or NO and explain."
+        ),
+    ])
+    
+    chain = prompt | llm
+    
+    batch_inputs = []
+    for i, chunk in enumerate(chunks):
+        label = chunk['criterion_id']
+        description = 'INCLUSION CRITERIA: \n' + inclusion_criteria[label] + "\n\n" + 'EXCLUSION CRITERIA: \n' + exclusion_criteria[label]
+        batch_inputs.append({
+            "text": chunk['text'],
+            "label": criteria_labels[label],
+            "description": description
+        })
+        
+    responses = chain.batch(batch_inputs, config={"max_concurrency": max_concurrency})
+    
+    usages = []
+    for r in responses:
+        usage = r.response_metadata.get("token_usage", {})
+        usages.append(usage)
+    
+    return responses, usages
+
+
+@memory.cache
 def send_to_llm(text, label, description, model='gpt-4.1-mini'):
     llm = ChatOpenAI(model=model, temperature=0, api_key=OPENAI_API_KEY)
 

@@ -5,7 +5,7 @@ from utils.embedding import get_embedding
 from utils.similarity import compute_similar_chunks, compute_similar_chunks_adaptive, compute_similar_chunks_mamdani
 from utils.pdf_highlighter import highlight_chunks
 from tqdm import tqdm
-from utils.check_chunk_llm import send_to_llm
+from utils.check_chunk_llm import send_to_llm, send_to_llm_batch
 from utils.cost_tracker import APICostTracker
 from time import time
 
@@ -43,11 +43,17 @@ def main(overwrite=False):
         
         print(f"Found {len(matched_chunks)} matched chunks")
         
-        for i, chunk in enumerate(tqdm(matched_chunks)):
-            label = chunk['criterion_id']
-            description = 'INCLUSION CRITERIA: \n' + INCLUSION_CRITERIA[label] + "\n\n" + 'EXCLUSION CRITERIA: \n' + EXCLUSION_CRITERIA[label]
-            matched_chunks[i]['llm_reason'], usage = send_to_llm(chunk['text'], CRITERIA_LABELS[label], description, LLM_MODEL)
-            cost_tracker.update_from_usage(usage)
+        # for i, chunk in enumerate(tqdm(matched_chunks)):
+        #     label = chunk['criterion_id']
+        #     description = 'INCLUSION CRITERIA: \n' + INCLUSION_CRITERIA[label] + "\n\n" + 'EXCLUSION CRITERIA: \n' + EXCLUSION_CRITERIA[label]
+        #     matched_chunks[i]['llm_reason'], usage = send_to_llm(chunk['text'], CRITERIA_LABELS[label], description, LLM_MODEL)
+        #     cost_tracker.update_from_usage(usage)
+        
+        responses, usages = send_to_llm_batch(matched_chunks, CRITERIA_LABELS, INCLUSION_CRITERIA, EXCLUSION_CRITERIA, LLM_MODEL)
+        for i, r in enumerate(responses):
+            matched_chunks[i]['llm_reason'] = r.content
+            cost_tracker.update_from_usage(usages[i])
+        
         
         highlight_chunks(pdf_path, matched_chunks, output_path)
         
