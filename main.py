@@ -7,7 +7,7 @@ from utils.pdf_highlighter import highlight_chunks
 from tqdm import tqdm
 from utils.check_chunk_llm import send_to_llm, send_to_llm_batch
 from utils.cost_tracker import APICostTracker
-from time import time
+from time import time, sleep
 
 def main(overwrite=False):
     cost_tracker = APICostTracker(model=LLM_MODEL)
@@ -57,6 +57,7 @@ def main(overwrite=False):
         
         highlight_chunks(pdf_path, matched_chunks, output_path)
         
+    sleep(1)
     cost_tracker.report()
 
 if __name__ == "__main__":

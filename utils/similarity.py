@@ -13,17 +13,17 @@ from utils.plotting import (
 )
 
 ############################# Fuzzy Logic ###########################################
-_SCORE = ctrl.Antecedent(np.linspace(0, 0.2, 201), 'score')      # Δ-similarity
-_MARG  = ctrl.Antecedent(np.linspace(0, 0.1, 101), 'margin')     # best−second
-_DEC   = ctrl.Consequent(np.linspace(0, 1,   101), 'decision')   # μ-membership
+_SCORE = ctrl.Antecedent(np.linspace(0, 0.15, 151), 'score')      # Δ-similarity
+_MARG  = ctrl.Antecedent(np.linspace(0, 0.025, 51), 'margin')     # best−second
+_DEC   = ctrl.Consequent(np.linspace(0, 1,    101), 'decision')   # μ-membership
 
-_SCORE['low']    = fuzz.trimf(_SCORE.universe, [0.00,  0.00,  0.06])
-_SCORE['medium'] = fuzz.trimf(_SCORE.universe, [0.05,  0.10,  0.15])
-_SCORE['high']   = fuzz.trimf(_SCORE.universe, [0.12,  0.2,  0.2])
+_SCORE['low']    = fuzz.trimf(_SCORE.universe, [0.00,  0.00,  0.05])
+_SCORE['medium'] = fuzz.trimf(_SCORE.universe, [0.04,  0.07,  0.10])
+_SCORE['high']   = fuzz.trimf(_SCORE.universe, [0.09,  0.15,  0.15])
 
-_MARG['small']   = fuzz.trimf(_MARG.universe, [0.00,  0.00,  0.03])
-_MARG['medium']  = fuzz.trimf(_MARG.universe, [0.02,  0.05,  0.08])
-_MARG['large']   = fuzz.trimf(_MARG.universe, [0.07,  0.1,  0.1])
+_MARG['small']   = fuzz.trimf(_MARG.universe, [0.000,  0.000,  0.010])
+_MARG['medium']  = fuzz.trimf(_MARG.universe, [0.008,  0.014,  0.020])
+_MARG['large']   = fuzz.trimf(_MARG.universe, [0.018,  0.025,  0.025])
 
 _DEC['reject'] = fuzz.trimf(_DEC.universe, [0,   0,   0.4])
 _DEC['maybe']  = fuzz.trimf(_DEC.universe, [0.3, 0.5, 0.7])
@@ -32,11 +32,11 @@ _DEC['accept'] = fuzz.trimf(_DEC.universe, [0.6, 1.0, 1.0])
 _RULES = [
     ctrl.Rule(_SCORE['high'] & _MARG['large'],    _DEC['accept']),
     ctrl.Rule(_SCORE['high'] & _MARG['medium'],   _DEC['accept']),
-    ctrl.Rule(_SCORE['high'] & _MARG['small'],    _DEC['maybe']),
+    ctrl.Rule(_SCORE['high'] & _MARG['small'],    _DEC['accept']),
     ctrl.Rule(_SCORE['medium'] & _MARG['large'],  _DEC['accept']),
     ctrl.Rule(_SCORE['medium'] & _MARG['medium'], _DEC['maybe']),
     ctrl.Rule(_SCORE['medium'] & _MARG['small'],  _DEC['reject']),
-    ctrl.Rule(_SCORE['low']    & _MARG['large'],  _DEC['accept']),
+    ctrl.Rule(_SCORE['low']    & _MARG['large'],  _DEC['maybe']),
     ctrl.Rule(_SCORE['low']    & _MARG['medium'], _DEC['reject']),
     ctrl.Rule(_SCORE['low']    & _MARG['small'],  _DEC['reject'])
 ]
@@ -50,7 +50,7 @@ def compute_similar_chunks_mamdani(
     model,
     mu_cutoff=0.35,           # membership degree required to accept a chunk
     percentile=95,            # still used only to *plot* a reference threshold
-    k=None, min_floor=0.02,   # idem
+    k=None, min_floor=0.02,
     return_thresholds=False,
     skip_reference=True
 ):
@@ -82,33 +82,37 @@ def compute_similar_chunks_mamdani(
 
     # ── Mamdani fuzzy selection
     matched_chunks = []
-    best_scores  = scores_mat.max(axis=1)
-    best_idx     = scores_mat.argmax(axis=1)
-    second_best  = np.partition(scores_mat, -2, axis=1)[:, -2]
-
-    for chunk, best, second, cid in zip(chunks, best_scores, second_best, best_idx):
+    all_mu = []
+    for chunk, score_vec in zip(chunks, scores_mat):
+        # Skip bibliography chunks
         if skip_reference and re.match(
-            r'^(references|reference[s]? section|bibliography|works cited|literature cited)(?:\s*\n|\s+[.:])?',
-            chunk["text"].lower(), re.IGNORECASE
-        ):
+            r'^(references|reference[s]? section|bibliography|works cited|literature cited)'
+            r'(?:\s*\n|\s+[.:])?', chunk["text"].lower(), re.IGNORECASE):
             break
-        
-        _FUZZ_SIM  = ctrl.ControlSystemSimulation(_FUZZ_CTRL)
-        _FUZZ_SIM.input['score']  = float(best)
-        _FUZZ_SIM.input['margin'] = float(best - second)
-        _FUZZ_SIM.compute()
-        mu = float(_FUZZ_SIM.output['decision']) if _FUZZ_SIM.output else 0.0
 
-        if mu >= mu_cutoff:
-            cpy = chunk.copy()
-            cpy["criterion_id"]  = int(cid)
-            cpy["membership_mu"] = mu
-            matched_chunks.append(cpy)
+        # For each criterion in this chunk
+        for cid, score in enumerate(score_vec):
+            other_best = np.max(np.delete(score_vec, cid))
+            margin = score - other_best
+            
+            sim = ctrl.ControlSystemSimulation(_FUZZ_CTRL)
+            sim.input['score']  = float(score)
+            sim.input['margin'] = float(margin)
+            sim.compute()
+            mu = float(sim.output['decision']) if sim.output else 0.0
+            all_mu.append(mu)
+            
+            if mu >= mu_cutoff:
+                cpy = chunk.copy()
+                cpy["criterion_id"]  = int(cid)
+                cpy["membership_mu"] = mu
+                matched_chunks.append(cpy)
 
-    # ── Optional visualisation
-    plot_cosine_similarity_distribution(best_scores, thr_dyn, filename)
+    # ── visualisation
+    plot_cosine_similarity_distribution(scores_mat.max(axis=1), thr_dyn, filename)
+    plot_cosine_similarity_distribution(all_mu, [mu_cutoff], "mu_" + filename, title="Membership Degree Distribution")
     # plot_all_membership_functions(_SCORE, _MARG, _DEC, mu_cutoff)
-    # plot_fuzzy_output_surface(_SCORE, _MARG, _FUZZ_CTRL)
+    # plot_fuzzy_output_surface(_SCORE, _MARG, _FUZZ_CTRL, filename)
     
     return (matched_chunks, thr_dyn) if return_thresholds else matched_chunks
 

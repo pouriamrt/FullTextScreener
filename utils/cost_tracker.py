@@ -1,7 +1,11 @@
+import matplotlib
+matplotlib.use('Agg')
 import time
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
+from config import PLOT_FOLDER
+import os
 
 class APICostTracker:
     # OpenAI pricing in USD per 1K tokens (update as needed)
@@ -49,7 +53,7 @@ class APICostTracker:
         self.cumulative_cost.append(self.total_cost)
         self.timestamps.append(datetime.now())
 
-    def plot_usage(self, save_path=None):
+    def plot_usage(self):
         """Plot token usage and cumulative cost over time."""
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
         
@@ -68,9 +72,8 @@ class APICostTracker:
         
         plt.tight_layout()
         
-        if save_path:
-            plt.savefig(save_path)
-        plt.show()
+        plt.savefig(os.path.join(PLOT_FOLDER, f"{self.model}_cost_tracker.png"))
+        plt.close()
 
     def report(self):
         elapsed = time.time() - self.start_time

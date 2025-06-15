@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from skfuzzy import control as ctrl
@@ -6,7 +8,7 @@ from config import CRITERIA_COLORS, PLOT_FOLDER, CRITERIA_LABELS
 import os
 
 
-def plot_fuzzy_output_surface(score, margin, control_system):
+def plot_fuzzy_output_surface(score, margin, control_system, filename):
     """
     Generates a 3D surface plot for the fuzzy decision output over a range of scores and margins.
     """
@@ -39,7 +41,8 @@ def plot_fuzzy_output_surface(score, margin, control_system):
     ax.set_zlabel('Decision μ')
     ax.view_init(elev=30, azim=135)
     plt.tight_layout()
-    plt.show()
+    plt.savefig(os.path.join(PLOT_FOLDER, f"{filename}_fuzzy_output_surface.png"))
+    plt.close()
 
 
 def plot_all_membership_functions(score, margin, decision, mu_cutoff):
@@ -74,7 +77,8 @@ def plot_all_membership_functions(score, margin, decision, mu_cutoff):
     axs[2].grid(True)
 
     plt.tight_layout()
-    plt.show(block=False)
+    plt.savefig(os.path.join(PLOT_FOLDER, "all_membership_functions.png"))
+    plt.close()
     
     
     
@@ -82,7 +86,11 @@ def plot_cosine_similarity_distribution(scores, thresholds, filename, bins=50, t
     plt.figure(figsize=(10, 6))
     plt.hist(scores, bins=bins, edgecolor='black')
     for i, threshold in enumerate(thresholds):
-        plt.axvline(x=threshold, color=CRITERIA_COLORS[i], linestyle='--', label=f'{CRITERIA_LABELS[i]} ({threshold})')
+        if title == "Membership Degree Distribution":
+            label = f'μ cutoff = {threshold}'
+        else:
+            label = f'{CRITERIA_LABELS[i]} ({threshold})'
+        plt.axvline(x=threshold, color=CRITERIA_COLORS[i], linestyle='--', label=label)
     plt.title(title, fontsize=14)
     plt.xlabel("Subtracted Cosine Similarity Score")
     plt.ylabel("Frequency")
@@ -91,7 +99,10 @@ def plot_cosine_similarity_distribution(scores, thresholds, filename, bins=50, t
     plt.tight_layout()
     if len(filename) > 70:
         filename = filename[:70] + "..."
-    plt.savefig(os.path.join(PLOT_FOLDER, f"{filename}_similarity_distribution.png"))
+    save_path = os.path.join(PLOT_FOLDER, f"{filename}_similarity_distribution.png")
+    if os.path.exists(save_path):
+        os.remove(save_path)
+    plt.savefig(save_path)
     plt.close()
 
 
