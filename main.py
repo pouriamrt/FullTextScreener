@@ -15,7 +15,7 @@ def main(overwrite=False):
     inclusion_criteria_embeddings = [get_embedding(c, OPENAI_MODEL) for c in tqdm(INCLUSION_CRITERIA)]
     exclusion_criteria_embeddings = [get_embedding(c, OPENAI_MODEL) for c in tqdm(EXCLUSION_CRITERIA)]
 
-    for filename in tqdm(os.listdir(PDF_FOLDER)[:4]):
+    for filename in tqdm(os.listdir(PDF_FOLDER)):
         if not filename.endswith(".pdf"):
             continue
         
@@ -35,7 +35,7 @@ def main(overwrite=False):
         # matched_chunks = compute_similar_chunks_adaptive(chunks, inclusion_criteria_embeddings, exclusion_criteria_embeddings, 
         #                                                  filename, OPENAI_MODEL, SIMILARITY_THRESHOLDS)
         matched_chunks = compute_similar_chunks_mamdani(chunks, inclusion_criteria_embeddings, exclusion_criteria_embeddings, 
-                                                        filename, OPENAI_MODEL, MU_CUTOFF)
+                                                        filename, OPENAI_MODEL, MU_CUTOFF, PERCENTILE)
         
         if matched_chunks is None:
             print(f"No matched chunks found for {filename[:100]}")

@@ -17,9 +17,9 @@ _SCORE = ctrl.Antecedent(np.linspace(0, 0.15, 151), 'score')      # Δ-similarit
 _MARG  = ctrl.Antecedent(np.linspace(0, 0.025, 51), 'margin')     # best−second
 _DEC   = ctrl.Consequent(np.linspace(0, 1,    101), 'decision')   # μ-membership
 
-_SCORE['low']    = fuzz.trimf(_SCORE.universe, [0.00,  0.00,  0.05])
-_SCORE['medium'] = fuzz.trimf(_SCORE.universe, [0.04,  0.07,  0.10])
-_SCORE['high']   = fuzz.trimf(_SCORE.universe, [0.09,  0.15,  0.15])
+_SCORE['low']    = fuzz.trimf(_SCORE.universe, [0.00,  0.00,  0.04])
+_SCORE['medium'] = fuzz.trimf(_SCORE.universe, [0.03,  0.06,  0.09])
+_SCORE['high']   = fuzz.trimf(_SCORE.universe, [0.08,  0.10,  0.10])
 
 _MARG['small']   = fuzz.trimf(_MARG.universe, [0.000,  0.000,  0.010])
 _MARG['medium']  = fuzz.trimf(_MARG.universe, [0.008,  0.014,  0.020])
@@ -35,7 +35,7 @@ _RULES = [
     ctrl.Rule(_SCORE['high'] & _MARG['small'],    _DEC['accept']),
     ctrl.Rule(_SCORE['medium'] & _MARG['large'],  _DEC['accept']),
     ctrl.Rule(_SCORE['medium'] & _MARG['medium'], _DEC['maybe']),
-    ctrl.Rule(_SCORE['medium'] & _MARG['small'],  _DEC['reject']),
+    ctrl.Rule(_SCORE['medium'] & _MARG['small'],  _DEC['maybe']),
     ctrl.Rule(_SCORE['low']    & _MARG['large'],  _DEC['maybe']),
     ctrl.Rule(_SCORE['low']    & _MARG['medium'], _DEC['reject']),
     ctrl.Rule(_SCORE['low']    & _MARG['small'],  _DEC['reject'])
@@ -48,8 +48,8 @@ def compute_similar_chunks_mamdani(
     exclusion_criteria_embeddings,
     filename,
     model,
-    mu_cutoff=0.35,           # membership degree required to accept a chunk
-    percentile=95,            # still used only to *plot* a reference threshold
+    mu_cutoff=None,           # membership degree required to accept a chunk (now dynamic)
+    percentile=85,            # still used only to *plot* a reference threshold
     k=None, min_floor=0.02,
     return_thresholds=False,
     skip_reference=True
@@ -83,11 +83,13 @@ def compute_similar_chunks_mamdani(
     # ── Mamdani fuzzy selection
     matched_chunks = []
     all_mu = []
+    dynamic_mu_cutoffs = []
     for chunk, score_vec in zip(chunks, scores_mat):
         # Skip bibliography chunks
-        if skip_reference and re.match(
-            r'^(references|reference[s]? section|bibliography|works cited|literature cited)'
-            r'(?:\s*\n|\s+[.:])?', chunk["text"].lower(), re.IGNORECASE):
+        if skip_reference and re.search(
+            r'(references|reference[s]? section|bibliography|works cited|literature cited)'
+            r'(?:\s*\n|\s+[.:])?', chunk["text"].lower(), re.IGNORECASE) and not re.search(
+            r'appendix', chunk["text"].lower(), re.IGNORECASE):
             break
 
         # For each criterion in this chunk
@@ -102,16 +104,28 @@ def compute_similar_chunks_mamdani(
             mu = float(sim.output['decision']) if sim.output else 0.0
             all_mu.append(mu)
             
-            if mu >= mu_cutoff:
+            # Dynamic mu_cutoff calculation
+            if mu_cutoff is None:
+                if len(all_mu) > 1:
+                    mu_array = np.array(all_mu)
+                    dynamic_mu_cutoff = max(np.percentile(mu_array, percentile), 0.15)
+                else:
+                    dynamic_mu_cutoff = 0.4
+            else:
+                dynamic_mu_cutoff = mu_cutoff
+
+            if mu >= dynamic_mu_cutoff:
                 cpy = chunk.copy()
                 cpy["criterion_id"]  = int(cid)
                 cpy["membership_mu"] = mu
                 matched_chunks.append(cpy)
+            
+            dynamic_mu_cutoffs.append(dynamic_mu_cutoff)
 
     # ── visualisation
     plot_cosine_similarity_distribution(scores_mat.max(axis=1), thr_dyn, filename)
-    plot_cosine_similarity_distribution(all_mu, [mu_cutoff], "mu_" + filename, title="Membership Degree Distribution")
-    # plot_all_membership_functions(_SCORE, _MARG, _DEC, mu_cutoff)
+    plot_cosine_similarity_distribution(all_mu, dynamic_mu_cutoffs, "mu_" + filename, title="Membership Degree Distribution")
+    # plot_all_membership_functions(_SCORE, _MARG, _DEC, max(dynamic_mu_cutoffs) if dynamic_mu_cutoffs else 0.35)
     # plot_fuzzy_output_surface(_SCORE, _MARG, _FUZZ_CTRL, filename)
     
     return (matched_chunks, thr_dyn) if return_thresholds else matched_chunks
@@ -167,7 +181,10 @@ def compute_similar_chunks_adaptive(
     # 4️⃣ Select matched chunks ---------------------------------------------
     matched_chunks = []
     for chunk, scores in zip(chunks, scores_matrix):
-        if skip_reference and re.match(r'^(references|reference[s]? section|bibliography|works cited|literature cited)(?:\s*\n|\s+[.:])?', chunk["text"].lower(), re.IGNORECASE):
+        if skip_reference and re.search(
+            r'(references|reference[s]? section|bibliography|works cited|literature cited)'
+            r'(?:\s*\n|\s+[.:])?', chunk["text"].lower(), re.IGNORECASE) and not re.search(
+            r'appendix', chunk["text"].lower(), re.IGNORECASE):
             break
         
         for criterion_id, (score, threshold) in enumerate(zip(scores, thr_dyn)):

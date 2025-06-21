@@ -85,12 +85,21 @@ def plot_all_membership_functions(score, margin, decision, mu_cutoff):
 def plot_cosine_similarity_distribution(scores, thresholds, filename, bins=50, title="Subtracted Cosine Similarity Score Distribution"):
     plt.figure(figsize=(10, 6))
     plt.hist(scores, bins=bins, edgecolor='black')
-    for i, threshold in enumerate(thresholds):
-        if title == "Membership Degree Distribution":
-            label = f'μ cutoff = {threshold}'
-        else:
-            label = f'{CRITERIA_LABELS[i]} ({threshold})'
-        plt.axvline(x=threshold, color=CRITERIA_COLORS[i], linestyle='--', label=label)
+    
+    if title == "Membership Degree Distribution":
+        if thresholds:
+            min_cutoff = min(thresholds)
+            max_cutoff = max(thresholds)
+            label_min = f'μ cutoff min = {min_cutoff:.2f}'
+            label_max = f'μ cutoff max = {max_cutoff:.2f}'
+            plt.axvline(x=min_cutoff, color='r', linestyle='--', label=label_min)
+            plt.axvline(x=max_cutoff, color='r', linestyle='--', label=label_max)
+            plt.legend()
+    else:
+        for i, threshold in enumerate(thresholds):
+            label = f'{CRITERIA_LABELS[i]} ({threshold:.2f})'
+            plt.axvline(x=threshold, color=CRITERIA_COLORS[i], linestyle='--', label=label)
+            
     plt.title(title, fontsize=14)
     plt.xlabel("Subtracted Cosine Similarity Score")
     plt.ylabel("Frequency")

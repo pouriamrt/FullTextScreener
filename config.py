@@ -68,7 +68,7 @@ EXCLUSION_CRITERIA = [
     Studies that are primarily health economic evaluations (e.g., cost-effectiveness analyses) or those focusing only on non-NCD outcomes.
     """,
     """
-    Studies using statistical regression, observational methods, trend forecasts, or risk prediction models that do not simulate interventions.
+    Studies using regression, observational methods, trend forecasts, or risk prediction models that do not simulate interventions.
     """,
     """
     Studies using only one data source or models that lack empirical grounding (e.g., purely hypothetical assumptions).
@@ -106,9 +106,12 @@ SENTENCES_OVERLAP = 1
 # SIMILARITY_THRESHOLD = 0.5
 # SIMILARITY_THRESHOLDS = [0.4, 0.45, 0.42, 0.48, 0.37, 0.37]
 SIMILARITY_THRESHOLDS = [0.05, 0.05, 0.05, 0.05, 0.13, 0.1]
-MU_CUTOFF = 0.4
+MU_CUTOFF = None #0.35
 PDF_FOLDER = "data/papers"
 OUTPUT_FOLDER = "data/output"
 PLOT_FOLDER = "data/plots"
 OVERWRITE = True
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+TEMPERATURE = 0.2
+LLM_SCORE_THRESHOLD = 50
+PERCENTILE = 85
