@@ -1,6 +1,6 @@
 # 🧠 NLP Pipeline for Full-Text Screening Using LLMs and Embeddings
 
-This repository implements a comprehensive pipeline to **automate the full-text screening** of scientific literature, particularly research papers in PDF format. It combines **OpenAI embeddings**, **LLM-based validation (GPT-4.1-mini)**, and optional **BioBERT fine-tuning** to assess whether text segments satisfy **user-defined inclusion criteria**. The output includes **annotated PDFs** with highlighted sections and justifications for each inclusion.
+This repository implements a comprehensive pipeline to **automate the full-text screening** of scientific literature (PDF format). It integrates **OpenAI embeddings**, **LLM-based validation (GPT-4.1-mini)**, optional **BioBERT fine-tuning**, and **contrastive inclusion/exclusion scoring**. The pipeline outputs **annotated PDFs** with highlights, tooltips, and **compliance reports** for systematic review support.
 
 ---
 
@@ -8,19 +8,27 @@ This repository implements a comprehensive pipeline to **automate the full-text 
 
 ```
 .
-├── main.py                       # Entry point for the entire pipeline
-├── config.py                     # Inclusion criteria, colors, thresholds, API keys
+├── main.py                       # Entry point for running the full pipeline
+├── config.py                     # Inclusion/exclusion criteria, thresholds, colors, API keys
 ├── models/
-│   └── biobert_trainer.py        # Optional: Fine-tune BioBERT on labeled data
+│   └── biobert_trainer.py        # Optional: fine-tune BioBERT with labeled data
 ├── utils/
-│   ├── check_chunk_llm.py        # LLM-based verification of semantic matches
-│   ├── embedding.py              # OpenAI embedding generator with caching
-│   ├── pdf_highlighter.py        # Applies highlights and tooltips to matched PDF text
+│   ├── check_chunk_llm.py        # Batch/single LLM verification of candidate chunks
+│   ├── cost_tracker.py           # Tracks OpenAI API usage and cost with plots
+│   ├── embedding.py              # Embedding functions with caching
+│   ├── get_pdfs_from_zotero.py   # Utility to fetch papers from Zotero libraries
+│   ├── pdf_highlighter.py        # Annotates PDFs with highlights and comments
 │   ├── pdf_parser.py             # Extracts sentence-based text chunks from PDFs
-│   └── similarity.py             # Computes cosine similarity and filters matches
+│   ├── plotting.py               # Helper for compliance and result visualizations
+│   └── similarity.py             # Cosine similarity + contrastive scoring (incl. exclusion)
+├── notebooks/
+│   └── compliant_files.ipynb     # Example analysis: compliance stats and evaluation
 ├── data/
-│   ├── papers/                   # Input folder: drop PDFs to be screened here
-│   └── output/                   # Output folder: highlighted and annotated PDFs
+│   ├── papers/                   # Input: drop PDFs here (or sync from Zotero)
+│   ├── output/                   # Output: annotated PDFs and reports
+│   └── excels/                   # Tabular compliance summaries
+├── requirements.txt
+├── LICENSE
 └── .gitignore
 ```
 
@@ -29,180 +37,145 @@ This repository implements a comprehensive pipeline to **automate the full-text 
 ## 🧠 What This Pipeline Does
 
 ### Problem
-In systematic reviews or screening tasks, full-text PDF review is labor-intensive and subjective. This project automates the screening pipeline with semantic and logical checks using modern NLP tools.
+Systematic review full-text screening is manual, slow, and subjective. This project automates semantic triage of PDFs using embeddings and LLM reasoning.
 
 ### Solution Workflow
-1. 📄 Input PDFs are chunked into overlapping sentences.
-2. 🔢 Each chunk is embedded using OpenAI’s `text-embedding-3-large`.
-3. 🧠 The chunk is semantically compared to pre-embedded inclusion criteria.
-4. ✅ Chunks with high similarity are verified using GPT-4.1-mini for human-like judgment.
-5. 🖍️ Validated chunks are annotated in the PDF with highlights and reasoning tooltips.
+1. 📄 Parse PDFs into overlapping sentence chunks.
+2. 🔢 Embed each chunk with OpenAI `text-embedding-3-large`.
+3. ⚖️ Score similarity against **both inclusion and exclusion criteria**.
+4. ✅ Verify borderline/high-scoring chunks with GPT-4.1-mini (YES/NO/MAYBE + explanation).
+5. 🖍️ Annotate PDFs with criterion-colored highlights and reasoning tooltips.
+6. 📊 Generate compliance reports (Excel, plots, token/cost tracking).
 
 ---
 
 ## 🏗️ Pipeline Architecture
 
-### 🧭 Overview
+### Overview
+1. PDFs → `data/papers/`
+2. Sentence-based chunking (sliding windows)
+3. Embedding generation + caching
+4. Contrastive similarity scoring (inclusion vs. exclusion)
+5. LLM batch verification (`check_chunk_llm.py`)
+6. PDF annotation (`pdf_highlighter.py`)
+7. Compliance stats & plots (`plotting.py`)
+8. Annotated outputs → `data/output/`
 
-1. 📄 **Input PDFs** placed in `data/papers/`
-2. 🧩 **Sentence-Based Chunking** (sliding windows with overlap)
-3. 🔢 **Embedding Generation** using `text-embedding-3-large`
-4. 📐 **Cosine Similarity Scoring** vs. inclusion criteria
-5. 🤖 **LLM Verification** using `GPT-4.1-mini`
-6. 🧠 **Store Validated Chunks** with LLM-generated reasoning
-7. 🖍️ **Highlight Matched Text** in original PDF
-8. 📂 **Save Annotated PDFs** to `data/output/`
+### Diagram
 
-### 🗺️ Diagram
-
-```bash
+```mermaid
 flowchart TD
-    A[Input PDFs (data/papers)] --> B[Sentence-Based Chunking]
-    B --> C[Embedding Generation (text-embedding-3-large)]
-    C --> D[Cosine Similarity Scoring vs. Inclusion Criteria]
+    A[Input PDFs] --> B[Sentence-Based Chunking]
+    B --> C[Embedding Generation]
+    C --> D[Similarity Scoring vs. Inclusion & Exclusion]
     D -->|Above Threshold| E[LLM Verification (GPT-4.1-mini)]
-    E --> F[Store Validated Chunks with Reasoning]
-    F --> G[Highlight Matches in PDF]
-    G --> H[Output PDFs (data/output)]
+    E --> F[Validated Chunks + Reasoning]
+    F --> G[Annotate PDF Highlights + Comments]
+    G --> H[Reports, Plots, Annotated PDFs]
 ```
 
 ---
 
-## 🔍 Inclusion Criteria Explained
+## 🔍 Inclusion & Exclusion Criteria
 
-All inclusion criteria are defined in `config.py`. Each one contains:
-- A **descriptive paragraph** used for semantic matching.
-- A **label** (e.g., "Population", "Intervention").
-- A **color code** used for highlighting.
+Defined in `config.py`:
 
-These criteria are first embedded using OpenAI and then used to compare against paper chunks.
+- **Inclusion Criteria**: e.g., Population, Intervention, Outcome, Study Design.
+- **Exclusion Criteria**: e.g., overly clinical cohorts, observational-only studies, non-NCD focus, regression-only methods.
+- Each criterion has:
+  - Descriptive text
+  - Label
+  - Highlight color
 
 ---
 
-## 🧪 How Matching Works (Deep Dive)
+## 🧪 How Matching Works
 
-1. **Chunking**:
-   - PDFs are read page-by-page using `PyMuPDF`.
-   - Each page is split into sliding windows of 3–4 sentences with overlaps to ensure context continuity.
-   - Each chunk is associated with its originating page number.
-
-2. **Embedding**:
-   - Both inclusion criteria and chunks are embedded using `text-embedding-3-large`.
-   - Each chunk becomes a dense vector in semantic space.
-
-3. **Similarity Scoring**:
-   - Cosine similarity is calculated between each chunk vector and every criterion vector.
-   - The chunk is assigned the criterion with the highest similarity.
-   - Only chunks with similarity above a threshold (e.g., 0.5) are retained.
-
-4. **LLM Verification**:
-   - GPT-4.1-mini is queried via LangChain with:
-     - The chunk’s text
-     - The matched criterion label
-     - The full inclusion criterion description
-   - The model answers:
-     - YES or NO
-     - An explanation (1–2 sentences)
-
-5. **Annotation**:
-   - Matched and verified chunks are saved with:
-     - Criterion label and ID
-     - Page number
-     - GPT explanation
-   - The original PDF is re-opened, and the matched text is highlighted.
-   - Hover annotations in the PDF show the model’s reasoning.
-
-6. **Output**:
-   - Annotated PDFs are stored in `data/output/` for human review and traceability.
+1. **Chunking**: `pdf_parser.py` uses PyMuPDF to create overlapping sentence windows.
+2. **Embedding**: Chunks and criteria embedded via OpenAI API (`embedding.py`).
+3. **Contrastive Scoring**: `similarity.py` compares chunk embeddings to **both inclusion and exclusion** vectors.
+4. **LLM Verification**:  
+   - `check_chunk_llm.py` uses GPT-4.1-mini (via LangChain).  
+   - Assigns **YES/NO/MAYBE** with score + justification.  
+   - Supports batch mode with concurrency control.
+5. **Annotation**: `pdf_highlighter.py` highlights matched text in criterion colors and adds LLM explanations as tooltips.
+6. **Reporting**: `plotting.py` + notebooks produce Excel compliance tables, summary plots, and cost tracking (`cost_tracker.py`).
 
 ---
 
 ## ⚙️ Configuration
 
-You can modify the following in `config.py`:
-- `INCLUSION_CRITERIA`: Paragraph descriptions of each criterion.
-- `SIMILARITY_THRESHOLD`: Filter threshold for cosine similarity.
-- `SENTENCES_PER_CHUNK`: Controls chunk granularity.
-- `CRITERIA_COLORS`: Colors for each criterion’s highlight.
-- `LLM_MODEL`, `OPENAI_MODEL`: Choose models to use.
+Adjust in `config.py`:
+- `INCLUSION_CRITERIA` / `EXCLUSION_CRITERIA`
+- `SIMILARITY_THRESHOLD`
+- `SENTENCES_PER_CHUNK`
+- `CRITERIA_COLORS`
+- `LLM_MODEL`, `EMBED_MODEL`
+- Cost plot output folder
 
 ---
 
 ## 🚀 Getting Started
 
-### Step 1: Install Requirements
-
+### Install
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 2: Set Up API Key
-
-Create a `.env` file with:
-
+### API Key
+Create `.env`:
 ```
 OPENAI_API_KEY=your-key-here
 ```
 
-### Step 3: Add PDFs
-
-Drop PDFs into the input folder:
-
-```
-data/papers/
-```
-
-### Step 4: Run the Pipeline
-
+### Run
 ```bash
 python main.py
 ```
 
-### Step 5: Review Annotated PDFs
+### Review Outputs
+- Annotated PDFs → `data/output/`
+- Compliance tables → `data/excels/`
+- Cost plots → `plots/`
 
-Output files with highlights and LLM comments will be saved in:
+---
 
-```
-data/output/
+## 🔬 Optional: BioBERT Training
+
+Fine-tune BioBERT with labeled inclusion/exclusion data:
+
+```python
+from models.biobert_trainer import train_biobert
+train_biobert([
+    {"text": "NCD simulation model using burden-of-disease", "label": 1},
+    {"text": "Descriptive regression only", "label": 0},
+])
 ```
 
 ---
 
-## 🔬 Optional: Train BioBERT on Labeled Data
-
-If you have labeled inclusion/exclusion data:
-
-```python
-from models.biobert_trainer import train_biobert
-
-train_biobert([
-    {"text": "This is an NCD simulation model using burden-of-disease.", "label": 3},
-    ...
-])
-```
-
-This uses HuggingFace’s Trainer API for supervised fine-tuning.
+## 📊 Additional Features
+- Zotero integration (`get_pdfs_from_zotero.py`) for syncing papers.
+- API cost tracking (`cost_tracker.py`) with usage plots.
+- Compliance exploration notebooks (`notebooks/compliant_files.ipynb`).
 
 ---
 
 ## 💡 Use Cases
-
-- Systematic review support
-- Automated inclusion/exclusion filtering
-- Transparent evidence triage in health modeling
-- Semantic filtering in scientific NLP pipelines
+- Systematic reviews
+- Automated triage of scientific PDFs
+- Transparent inclusion/exclusion filtering
+- NLP pipelines for health modeling and evidence synthesis
 
 ---
 
 ## 📜 License
-
-This project is released under the MIT License.
+MIT License.
 
 ---
 
 ## 🙏 Acknowledgments
-
-- [OpenAI](https://openai.com/)
-- [LangChain](https://www.langchain.com/)
-- [HuggingFace](https://huggingface.co/)
-- [PyMuPDF](https://pymupdf.readthedocs.io/)
+- [OpenAI](https://openai.com/)  
+- [LangChain](https://www.langchain.com/)  
+- [HuggingFace](https://huggingface.co/)  
+- [PyMuPDF](https://pymupdf.readthedocs.io/)  

@@ -108,9 +108,9 @@ def compute_similar_chunks_mamdani(
             if mu_cutoff is None:
                 if len(all_mu) > 1:
                     mu_array = np.array(all_mu)
-                    dynamic_mu_cutoff = max(np.percentile(mu_array, percentile), 0.15)
+                    dynamic_mu_cutoff = max(np.percentile(mu_array, percentile), 0.4)
                 else:
-                    dynamic_mu_cutoff = 0.4
+                    dynamic_mu_cutoff = 0.5
             else:
                 dynamic_mu_cutoff = mu_cutoff
 

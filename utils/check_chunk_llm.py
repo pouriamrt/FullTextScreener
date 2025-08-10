@@ -21,9 +21,11 @@ def send_to_llm_batch(chunks, criteria_labels, inclusion_criteria, exclusion_cri
             f"Instructions:\n"
             f"1. Evaluate if the chunk provides evidence supporting or satisfying the criterion.\n"
             f"2. Assign a relevance SCORE from 0 to 100.\n"
-            f"3. If the SCORE is greater than {LLM_SCORE_THRESHOLD}, consider it RELEVANT.\n"
+            f"3. If the SCORE is less than {LLM_SCORE_THRESHOLD - 10}, respond should be NO.\n"
+            f"   If the SCORE is between {LLM_SCORE_THRESHOLD - 10} and {LLM_SCORE_THRESHOLD + 10}, respond should be MAYBE.\n"
+            f"   If the SCORE is greater than {LLM_SCORE_THRESHOLD + 10}, respond should be YES.\n\n"
             f"4. Respond with:\n"
-            f"   - YES or NO (is it relevant?)\n"
+            f"   - YES, NO, or MAYBE (is it relevant?)\n"
             f"   - The SCORE (0–100)\n"
             f"   - A brief 1–2 sentence justification."
         ),
