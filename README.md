@@ -63,16 +63,14 @@ Systematic review full-text screening is manual, slow, and subjective. This proj
 
 ### Diagram
 
-```mermaid
 flowchart TD
-    A[Input PDFs] --> B[Sentence-Based Chunking]
-    B --> C[Embedding Generation]
-    C --> D[Similarity Scoring vs. Inclusion & Exclusion]
-    D -->|Above Threshold| E[LLM Verification (GPT-4.1-mini)]
-    E --> F[Validated Chunks + Reasoning]
-    F --> G[Annotate PDF Highlights + Comments]
-    G --> H[Reports, Plots, Annotated PDFs]
-```
+    A["Input PDFs"] --> B["Sentence-based chunking"]
+    B --> C["Embedding generation"]
+    C --> D["Similarity scoring vs inclusion and exclusion"]
+    D -- "Above threshold" --> E["LLM verification - GPT-4_1 mini"]
+    E --> F["Validated chunks and reasoning"]
+    F --> G["Annotate PDF highlights and comments"]
+    G --> H["Reports, plots, annotated PDFs"]
 
 ---
 
