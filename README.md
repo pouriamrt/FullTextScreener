@@ -63,16 +63,7 @@ Systematic review full-text screening is manual, slow, and subjective. This proj
 
 ### Diagram
 
-```mermaid
-flowchart TD
-    A["Input PDFs"] --> B["Sentence-based chunking"]
-    B --> C["Embedding generation"]
-    C --> D["Similarity scoring vs inclusion and exclusion"]
-    D -- "Above threshold" --> E["LLM verification - GPT-4_1 mini"]
-    E --> F["Validated chunks and reasoning"]
-    F --> G["Annotate PDF highlights and comments"]
-    G --> H["Reports, plots, annotated PDFs"]
-```
+![Pipeline Architecture](assets/fulltext_screening_process.png)
 
 ---
 
@@ -137,6 +128,8 @@ python main.py
 - Annotated PDFs → `data/output/`
 - Compliance tables → `data/excels/`
 - Cost plots → `plots/`
+
+![Pipeline Output Example](assets/fulltext_example.png)
 
 ---
 
