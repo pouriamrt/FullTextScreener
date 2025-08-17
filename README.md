@@ -63,6 +63,7 @@ Systematic review full-text screening is manual, slow, and subjective. This proj
 
 ### Diagram
 
+```mermaid
 flowchart TD
     A["Input PDFs"] --> B["Sentence-based chunking"]
     B --> C["Embedding generation"]
@@ -71,6 +72,7 @@ flowchart TD
     E --> F["Validated chunks and reasoning"]
     F --> G["Annotate PDF highlights and comments"]
     G --> H["Reports, plots, annotated PDFs"]
+
 
 ---
 
