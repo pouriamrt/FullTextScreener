@@ -72,7 +72,7 @@ flowchart TD
     E --> F["Validated chunks and reasoning"]
     F --> G["Annotate PDF highlights and comments"]
     G --> H["Reports, plots, annotated PDFs"]
-
+```
 
 ---
 
