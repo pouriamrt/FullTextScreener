@@ -37,7 +37,7 @@ This repository implements a comprehensive pipeline to **automate the full-text 
 ## 🧠 What This Pipeline Does
 
 ### Problem
-Systematic review full-text screening is manual, slow, and subjective. This project automates semantic triage of PDFs using embeddings and LLM reasoning.
+Systematic review full-text screening is manual, slow, and subjective. This project automates the semantic triage of PDFs using embeddings and LLM reasoning.
 
 ### Solution Workflow
 1. 📄 Parse PDFs into overlapping sentence chunks.
